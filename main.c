@@ -12,7 +12,6 @@ void grayscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], u
     {
       unsigned char average = (input_image[x][y][0] + input_image[x][y][1] + input_image[x][y][2]) / 3;
       output_image[x][y] = average;
-      // printf("0 - %d, 1 - %d, 2 - %d, average - %d\n", input_image[x][y][0], input_image[x][y][1], input_image[x][y][2], average);
     }
   }
 }
