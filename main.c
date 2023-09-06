@@ -8,6 +8,7 @@ const int THRESHOLD = 100;
 void grayscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
 void threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
 void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
+void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
@@ -84,6 +85,17 @@ void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], u
       for (int c = 0; c < BMP_CHANNELS; c++)
       {
         output_image[x][y][c] = input_image[x][y];
+      }
+    }
+  }
+}
+
+void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
+  for (int x = 0; x < BMP_WIDTH; x++) {
+    for (int y = 0; y < BMP_HEIGTH; y++) {
+      if (input_image[x][y-1][0] && input_image[x-1][y][0] && input_image[x+1][y][0] && input_image[x][y+1][0]) {
+      } else {
+        input_image[x][y][1] = 0; // TODO Save value in different channel so the next loop doesn't effect the image
       }
     }
   }
