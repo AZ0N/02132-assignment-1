@@ -4,6 +4,54 @@
 
 const int THRESHOLD = 100;
 
+// Prototypes
+void grayscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
+void threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
+void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
+
+// Declaring the array to store the image (unsigned char = unsigned 8 bit)
+unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+unsigned char working_image[BMP_WIDTH][BMP_HEIGTH];
+
+// Main function
+int main(int argc, char **argv)
+{
+  // argc counts how may arguments are passed
+  // argv[0] is a string with the name of the program
+  // argv[1] is the first command line argument (input image)
+  // argv[2] is the second command line argument (output image)
+
+  // Checking that 2 arguments are passed
+  if (argc != 3)
+  {
+    fprintf(stderr, "Usage: %s <output file path> <output file path>\n", argv[0]);
+    exit(1);
+  }
+
+  printf("Example program - 02132 - A1\n");
+
+  // Load image from file
+  read_bitmap(argv[1], input_image);
+
+  // Convert to grayscale
+  grayscale(input_image, working_image);
+
+  // Threshold
+  threshold(working_image);
+
+  // Erode and detect
+
+  // Back to multi channel 
+  single_to_multi_channel(working_image, output_image);
+
+  // Save image to file
+  write_bitmap(output_image, argv[2]);
+
+  printf("Done!\n");
+  return 0;
+}
+
 void grayscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
 {
   for (int x = 0; x < BMP_WIDTH; x++)
@@ -27,7 +75,7 @@ void threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH])
   }
 }
 
-void grayscale_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
+void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
   for (int x = 0; x < BMP_WIDTH; x++)
   {
@@ -39,45 +87,4 @@ void grayscale_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]
       }
     }
   }
-}
-
-// Declaring the array to store the image (unsigned char = unsigned 8 bit)
-unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char grayscale_image[BMP_WIDTH][BMP_HEIGTH];
-
-// Main function
-int main(int argc, char **argv)
-{
-  // argc counts how may arguments are passed
-  // argv[0] is a string with the name of the program
-  // argv[1] is the first command line argument (input image)
-  // argv[2] is the second command line argument (output image)
-
-  // Checking that 2 arguments are passed
-  if (argc != 3)
-  {
-    fprintf(stderr, "Usage: %s <output file path> <output file path>\n", argv[0]);
-    exit(1);
-  }
-
-  printf("Example program - 02132 - A1\n");
-
-  // Load image from file
-  read_bitmap(argv[1], input_image);
-
-  // Convert to grayscale
-  grayscale(input_image, grayscale_image);
-
-  // Threshold
-  threshold(grayscale_image);
-
-  // Back to multi channel 
-  grayscale_to_multi_channel(grayscale_image, output_image);
-
-  // Save image to file
-  write_bitmap(output_image, argv[2]);
-
-  printf("Done!\n");
-  return 0;
 }
