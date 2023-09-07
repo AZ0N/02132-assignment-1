@@ -8,12 +8,15 @@ const int THRESHOLD = 100;
 void grayscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
 void threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
 void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
-void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
+void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+
+// TODO Use input_image & output_image channels instead of separate arrays
 unsigned char working_image[BMP_WIDTH][BMP_HEIGTH];
+unsigned char working_image_2[BMP_WIDTH][BMP_HEIGTH];
 
 // Main function
 int main(int argc, char **argv)
@@ -41,13 +44,29 @@ int main(int argc, char **argv)
   // Threshold
   threshold(working_image);
 
-  // Erode and detect
+  for (int i = 0; i < 12; i++)
+  {
+    // Erode
+    erode(working_image, working_image_2);
 
-  // Back to multi channel 
-  single_to_multi_channel(working_image, output_image);
+    for (int x = 0; x < BMP_WIDTH; x++)
+    {
+      for (int y = 0; y < BMP_HEIGTH; y++)
+      {
+        working_image[x][y] = working_image_2[x][y];
+      }
+    }
 
-  // Save image to file
-  write_bitmap(output_image, argv[2]);
+    // Back to multi channel
+    single_to_multi_channel(working_image, output_image);
+
+    // Set filename
+    char filename[30];
+    sprintf(filename, "./erode-%d.bmp", i);
+
+    // Save image to file
+    write_bitmap(output_image, filename);
+  }
 
   printf("Done!\n");
   return 0;
@@ -90,12 +109,23 @@ void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], u
   }
 }
 
-void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
-  for (int x = 0; x < BMP_WIDTH; x++) {
-    for (int y = 0; y < BMP_HEIGTH; y++) {
-      if (input_image[x][y-1][0] && input_image[x-1][y][0] && input_image[x+1][y][0] && input_image[x][y+1][0]) {
-      } else {
-        input_image[x][y][1] = 0; // TODO Save value in different channel so the next loop doesn't effect the image
+void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
+{
+  for (int x = 0; x < BMP_WIDTH; x++)
+  {
+    for (int y = 0; y < BMP_HEIGTH; y++)
+    {
+      if (input_image[x][y] &&                             // Is this pixel white?
+          (y > 0 && input_image[x][y - 1]) &&              // Is the above pixel white?
+          (x > 0 && input_image[x - 1][y]) &&              // Is the left pixel white?
+          (y < BMP_HEIGTH - 1 && input_image[x][y + 1]) && // Is the bottom pixel white?
+          (x < BMP_WIDTH - 1 && input_image[x + 1][y]))    // Is the right pixel white?
+      {
+        output_image[x][y] = 255;
+      }
+      else
+      {
+        output_image[x][y] = 0;
       }
     }
   }
