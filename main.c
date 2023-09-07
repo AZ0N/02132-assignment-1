@@ -5,8 +5,7 @@
 const int THRESHOLD = 100;
 
 // Prototypes
-void grayscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
-void threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
+void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
 void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
 void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
 
@@ -39,10 +38,7 @@ int main(int argc, char **argv)
   read_bitmap(argv[1], input_image);
 
   // Convert to grayscale
-  grayscale(input_image, working_image);
-
-  // Threshold
-  threshold(working_image);
+  grayscale_and_threshold(input_image, working_image);
 
   for (int i = 0; i < 12; i++)
   {
@@ -72,25 +68,14 @@ int main(int argc, char **argv)
   return 0;
 }
 
-void grayscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
+void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
 {
   for (int x = 0; x < BMP_WIDTH; x++)
   {
     for (int y = 0; y < BMP_HEIGTH; y++)
     {
       unsigned char average = (input_image[x][y][0] + input_image[x][y][1] + input_image[x][y][2]) / 3;
-      output_image[x][y] = average;
-    }
-  }
-}
-
-void threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH])
-{
-  for (int x = 0; x < BMP_WIDTH; x++)
-  {
-    for (int y = 0; y < BMP_HEIGTH; y++)
-    {
-      input_image[x][y] = input_image[x][y] > THRESHOLD ? 255 : 0;
+      output_image[x][y] = (average > THRESHOLD) ? 255 : 0;
     }
   }
 }
