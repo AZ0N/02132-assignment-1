@@ -2,12 +2,17 @@
 #include <stdio.h>
 #include "cbmp.h"
 
-const int THRESHOLD = 100;
+#define THRESHOLD 90
+#define CROSS_RADIUS 8
+
+int number_cells = 0;
 
 // Prototypes
 void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
 void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
-void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
+int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
+void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH]);
+void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
@@ -40,31 +45,41 @@ int main(int argc, char **argv)
   // Convert to grayscale
   grayscale_and_threshold(input_image, working_image);
 
-  for (int i = 0; i < 12; i++)
+  int erode_number = 0;
+  while (1)
   {
-    // Erode
-    erode(working_image, working_image_2);
-
-    for (int x = 0; x < BMP_WIDTH; x++)
+    int erode_result = 0;
+    if (erode_number % 2 == 0)
     {
-      for (int y = 0; y < BMP_HEIGTH; y++)
-      {
-        working_image[x][y] = working_image_2[x][y];
-      }
+      erode_result = erode(working_image, working_image_2);
+    }
+    else
+    {
+      erode_result = erode(working_image_2, working_image);
     }
 
-    // Back to multi channel
-    single_to_multi_channel(working_image, output_image);
+    if (!erode_result)
+    {
+      break;
+    }
 
-    // Set filename
-    char filename[30];
-    sprintf(filename, "./erode-%d.bmp", i);
+    erode_number++;
 
-    // Save image to file
-    write_bitmap(output_image, filename);
+    if (erode_number % 2 == 0)
+    {
+      detect(working_image);
+    }
+    else
+    {
+      detect(working_image_2);
+    }
+    // Save erode step image
+    // char filename[30];
+    // sprintf(filename, "./erode_and_detect_%d.bmp", erode_number);
+    // write_bitmap(input_image, filename);
   }
-
-  printf("Done!\n");
+  write_bitmap(input_image, argv[2]);
+  printf("%d cells found.\n", number_cells);
   return 0;
 }
 
@@ -94,8 +109,10 @@ void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], u
   }
 }
 
-void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
+int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
 {
+  int did_erode = 0;
+
   for (int x = 0; x < BMP_WIDTH; x++)
   {
     for (int y = 0; y < BMP_HEIGTH; y++)
@@ -107,10 +124,107 @@ void erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char outpu
           (x < BMP_WIDTH - 1 && input_image[x + 1][y]))    // Is the right pixel white?
       {
         output_image[x][y] = 255;
+        did_erode = 1;
       }
       else
       {
         output_image[x][y] = 0;
+      }
+    }
+  }
+  return did_erode;
+}
+
+void detect(unsigned char image[BMP_WIDTH][BMP_WIDTH])
+{
+  for (int x = 0; x < BMP_WIDTH; x++)
+  {
+    for (int y = 0; y < BMP_HEIGTH; y++)
+    {
+      int white_in_exclusion = 0;
+      // First check exclusion frame
+      for (int d = -6; d <= 6; d++)
+      {
+        // TODO Remove unneccesary checks, and possibly group some of them together
+        // Top row
+        if (0 <= x + d && x + d < BMP_WIDTH && 0 <= y - 6 && y - 6 < BMP_HEIGTH && image[x + d][y - 6])
+        {
+          white_in_exclusion = 1;
+          break;
+        }
+        // Bottom row
+        if (0 <= x + d && x + d < BMP_WIDTH && 0 <= y + 6 && y + 6 < BMP_HEIGTH && image[x + d][y + 6])
+        {
+          white_in_exclusion = 1;
+          break;
+        }
+        // Left column
+        if (0 <= x - 6 && x - 6 < BMP_WIDTH && 0 <= y + d && y + d < BMP_HEIGTH && image[x - 6][y + d])
+        {
+          white_in_exclusion = 1;
+          break;
+        }
+        // Right column
+        if (0 <= x + 6 && x + 6 < BMP_WIDTH && 0 <= y + d && y + d < BMP_HEIGTH && image[x + 6][y + d])
+        {
+          white_in_exclusion = 1;
+          break;
+        }
+      }
+      // If we found a white pixel in the exclusion frame, move the detection windows 1 over
+      if (white_in_exclusion)
+      {
+        continue;
+      }
+      // Exclusion frame is all black (or empty), check if any white pixels inside
+      int found_cell = 0;
+
+      for (int dx = -5; dx <= 5; dx++)
+      {
+        for (int dy = -5; dy <= 5; dy++)
+        {
+          if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH && image[x + dx][y + dy])
+          {
+            found_cell = 1;
+            image[x + dx][y + dy] = 0;
+          }
+        }
+      }
+      // If we found a cell
+      if (found_cell)
+      {
+        printf("Cell: (%d, %d)\n", x, y);
+        number_cells++;
+        draw_cross(x, y, input_image);
+      }
+    }
+  }
+}
+
+// Draw a red cross on image with center at (x,y)
+void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
+{
+  // Horizontal line
+  for (int dx = -CROSS_RADIUS; dx <= CROSS_RADIUS; dx++)
+  {
+    for (int dy = -2; dy <= 2; dy++)
+    {
+      if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH)
+      {
+        image[x + dx][y + dy][0] = 255;
+        image[x + dx][y + dy][1] = image[x + dx][y + dy][2] = 0;
+      }
+    }
+  }
+  // Vertical line
+  for (int dy = -CROSS_RADIUS; dy <= CROSS_RADIUS; dy++)
+  {
+    for (int dx = -2; dx <= 2; dx++)
+    {
+      if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH)
+      {
+        image[x + dx][y + dy][0] = 255;
+        image[x + dx][y + dy][1] = image[x + dx][y + dy][2] = 0;
       }
     }
   }
