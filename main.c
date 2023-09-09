@@ -16,11 +16,7 @@ void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHA
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-
-// TODO Use input_image & output_image channels instead of separate arrays
-unsigned char working_image[BMP_WIDTH][BMP_HEIGTH];
-unsigned char working_image_2[BMP_WIDTH][BMP_HEIGTH];
+unsigned char working_image[2][BMP_WIDTH][BMP_HEIGTH];
 
 // Main function
 int main(int argc, char **argv)
@@ -42,37 +38,29 @@ int main(int argc, char **argv)
   // Load image from file
   read_bitmap(argv[1], input_image);
 
-  // Convert to grayscale
-  grayscale_and_threshold(input_image, working_image);
+  // Convert to grayscale and apply threshold
+  grayscale_and_threshold(input_image, working_image[0]);
 
   int erode_number = 0;
+  int from_index = 0;
+  int to_index = 1;
+
   while (1)
   {
-    int erode_result = 0;
-    if (erode_number % 2 == 0)
-    {
-      erode_result = erode(working_image, working_image_2);
-    }
-    else
-    {
-      erode_result = erode(working_image_2, working_image);
-    }
-
-    if (!erode_result)
+    // Erode, and break if nothing was eroded (0! = true) 
+    if (!erode(working_image[from_index], working_image[to_index]))
     {
       break;
     }
+    // Detect cells in the eroded image
+    detect(working_image[to_index]);
 
+    // Increment the erode_number
     erode_number++;
+    // Increment and wrap from and to indexes (0 -> 1, 1 -> 0)
+    from_index = (from_index + 1) % 2;
+    to_index = (to_index + 1) % 2;
 
-    if (erode_number % 2 == 0)
-    {
-      detect(working_image);
-    }
-    else
-    {
-      detect(working_image_2);
-    }
     // Save erode step image
     // char filename[30];
     // sprintf(filename, "./erode_and_detect_%d.bmp", erode_number);
@@ -135,7 +123,7 @@ int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output
   return did_erode;
 }
 
-void detect(unsigned char image[BMP_WIDTH][BMP_WIDTH])
+void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 {
   for (int x = 0; x < BMP_WIDTH; x++)
   {
