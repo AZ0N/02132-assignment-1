@@ -5,7 +5,6 @@
 #define THRESHOLD 90
 #define CROSS_RADIUS 8
 
-int number_cells = 0;
 
 // Prototypes
 void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
@@ -18,6 +17,9 @@ void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHA
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char working_image[2][BMP_WIDTH][BMP_HEIGTH];
 
+// The total number of detected cells
+int number_cells = 0;
+
 // Main function
 int main(int argc, char **argv)
 {
@@ -29,11 +31,9 @@ int main(int argc, char **argv)
   // Checking that 2 arguments are passed
   if (argc != 3)
   {
-    fprintf(stderr, "Usage: %s <output file path> <output file path>\n", argv[0]);
+    fprintf(stderr, "Usage: %s <input file path> <output file path>\n", argv[0]);
     exit(1);
   }
-
-  printf("Example program - 02132 - A1\n");
 
   // Load image from file
   read_bitmap(argv[1], input_image);
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
   while (1)
   {
-    // Erode, and break if nothing was eroded (0! = true) 
+    // Erode, and break if nothing was eroded (0! = true)
     if (!erode(working_image[from_index], working_image[to_index]))
     {
       break;
@@ -57,6 +57,7 @@ int main(int argc, char **argv)
 
     // Increment the erode_number
     erode_number++;
+
     // Increment and wrap from and to indexes (0 -> 1, 1 -> 0)
     from_index = (from_index + 1) % 2;
     to_index = (to_index + 1) % 2;
