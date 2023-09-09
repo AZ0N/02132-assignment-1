@@ -5,7 +5,6 @@
 #define THRESHOLD 90
 #define CROSS_RADIUS 8
 
-
 // Prototypes
 void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
 void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
@@ -132,32 +131,40 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
     {
       int white_in_exclusion = 0;
       // First check exclusion frame
+      // TODO Use constant for exlusion and detection frame size
       for (int d = -6; d <= 6; d++)
       {
-        // TODO Remove unneccesary checks, and possibly group some of them together
-        // Top row
-        if (0 <= x + d && x + d < BMP_WIDTH && 0 <= y - 6 && y - 6 < BMP_HEIGTH && image[x + d][y - 6])
+        // Vertical lines
+        if (0 <= x + d && x + d < BMP_WIDTH)
         {
-          white_in_exclusion = 1;
-          break;
+          // Top row
+          if (0 <= y - 6 && image[x + d][y - 6])
+          {
+            white_in_exclusion = 1;
+            break;
+          }
+          // Bottom row
+          if (y + 6 < BMP_HEIGTH && image[x + d][y + 6])
+          {
+            white_in_exclusion = 1;
+            break;
+          }
         }
-        // Bottom row
-        if (0 <= x + d && x + d < BMP_WIDTH && 0 <= y + 6 && y + 6 < BMP_HEIGTH && image[x + d][y + 6])
+        // Horizontal lines
+        if (0 <= y + d && y + d < BMP_HEIGTH)
         {
-          white_in_exclusion = 1;
-          break;
-        }
-        // Left column
-        if (0 <= x - 6 && x - 6 < BMP_WIDTH && 0 <= y + d && y + d < BMP_HEIGTH && image[x - 6][y + d])
-        {
-          white_in_exclusion = 1;
-          break;
-        }
-        // Right column
-        if (0 <= x + 6 && x + 6 < BMP_WIDTH && 0 <= y + d && y + d < BMP_HEIGTH && image[x + 6][y + d])
-        {
-          white_in_exclusion = 1;
-          break;
+          // Left column
+          if (0 <= x - 6 && image[x - 6][y + d])
+          {
+            white_in_exclusion = 1;
+            break;
+          }
+          // Right column
+          if (x + 6 < BMP_WIDTH && image[x + 6][y + d])
+          {
+            white_in_exclusion = 1;
+            break;
+          }
         }
       }
       // If we found a white pixel in the exclusion frame, move the detection windows 1 over
