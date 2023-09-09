@@ -1,3 +1,6 @@
 # Executables
 *.exe
 *.out
+
+# BMP Files
+*.bmp
