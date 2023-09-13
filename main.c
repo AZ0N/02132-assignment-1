@@ -9,7 +9,9 @@
 // Prototypes
 void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
 void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
-int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
+int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH], int iteration);
+int match_straight(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
+int match_diagonal(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
 void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH]);
 void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
 
@@ -48,7 +50,7 @@ int main(int argc, char **argv)
   int to_index = 1;
 
   // Erode while something was eroded in the last iteration
-  while (erode(working_image[from_index], working_image[to_index]))
+  while (erode(working_image[from_index], working_image[to_index], erode_number))
   {
     // Save erode image
     // char filename[30];
@@ -101,7 +103,7 @@ void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], u
   }
 }
 
-int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
+int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH], int iteration)
 {
   int did_erode = 0;
   for (int x = 0; x < BMP_WIDTH; x++)
@@ -111,10 +113,7 @@ int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output
       if (input_image[x][y])
       {
         // If any of the directly surrounding pixels are black (edges are considered white) erode the pixel
-        if ((y > 0 && !input_image[x][y - 1]) ||
-            (x > 0 && !input_image[x - 1][y]) ||
-            (y < BMP_HEIGTH - 1 && !input_image[x][y + 1]) ||
-            (x < BMP_WIDTH - 1 && !input_image[x + 1][y]))
+        if ((iteration % 2 == 0 && match_straight(x, y, input_image)) || (iteration % 2 != 0 && match_diagonal(x, y, input_image)))
         {
           output_image[x][y] = 0;
           did_erode = 1;
@@ -131,6 +130,26 @@ int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output
     }
   }
   return did_erode;
+}
+
+int match_straight(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH])
+{
+  return ((y > 0 && !input_image[x][y - 1]) ||
+          (x > 0 && !input_image[x - 1][y]) ||
+          (y < BMP_HEIGTH - 1 && !input_image[x][y + 1]) ||
+          (x < BMP_WIDTH - 1 && !input_image[x + 1][y]))
+             ? 1
+             : 0;
+}
+
+int match_diagonal(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH])
+{
+  return ((0 < x && 0 < y && !input_image[x - 1][y - 1]) ||
+          (0 < x && y < BMP_HEIGTH - 1 && !input_image[x - 1][y + 1]) ||
+          (x < BMP_WIDTH - 1 && 0 < y && !input_image[x + 1][y - 1]) ||
+          (x < BMP_WIDTH - 1 && y < BMP_HEIGTH - 1 && !input_image[x + 1][y + 1]))
+             ? 1
+             : 0;
 }
 
 void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
