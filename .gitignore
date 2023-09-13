@@ -4,3 +4,6 @@
 
 # BMP Files
 *.bmp
+
+# Shell scripts
+*.sh
