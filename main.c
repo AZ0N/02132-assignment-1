@@ -4,7 +4,7 @@
 
 #define THRESHOLD 90
 #define CROSS_RADIUS 8
-#define DETECTION_HALF_RADIUS 5
+#define DETECTION_HALF_RADIUS 6
 
 // Prototypes
 void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);
@@ -47,13 +47,9 @@ int main(int argc, char **argv)
   int from_index = 0;
   int to_index = 1;
 
-  while (1)
+  // Erode while something was eroded in the last iteration
+  while (erode(working_image[from_index], working_image[to_index]))
   {
-    // Erode, and break if nothing was eroded (0! = true)
-    if (!erode(working_image[from_index], working_image[to_index]))
-    {
-      break;
-    }
     // Save erode image
     // char filename[30];
     // sprintf(filename, "./output/erode%d.bmp", erode_number);
@@ -108,19 +104,25 @@ void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], u
 int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
 {
   int did_erode = 0;
-
   for (int x = 0; x < BMP_WIDTH; x++)
   {
     for (int y = 0; y < BMP_HEIGTH; y++)
     {
-      if (input_image[x][y] &&                             // Is this pixel white?
-          (y > 0 && input_image[x][y - 1]) &&              // Is the above pixel white?
-          (x > 0 && input_image[x - 1][y]) &&              // Is the left pixel white?
-          (y < BMP_HEIGTH - 1 && input_image[x][y + 1]) && // Is the bottom pixel white?
-          (x < BMP_WIDTH - 1 && input_image[x + 1][y]))    // Is the right pixel white?
+      if (input_image[x][y])
       {
-        output_image[x][y] = 255;
-        did_erode = 1;
+        // If any of the directly surrounding pixels are black (edges are considered white) erode the pixel
+        if ((y > 0 && !input_image[x][y - 1]) ||
+            (x > 0 && !input_image[x - 1][y]) ||
+            (y < BMP_HEIGTH - 1 && !input_image[x][y + 1]) ||
+            (x < BMP_WIDTH - 1 && !input_image[x + 1][y]))
+        {
+          output_image[x][y] = 0;
+          did_erode = 1;
+        }
+        else
+        {
+          output_image[x][y] = 255;
+        }
       }
       else
       {
@@ -196,7 +198,7 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
       // If we found a cell
       if (found_cell)
       {
-        printf("Cell: (%d, %d)\n", x, y);
+        // printf("Cell: (%d, %d)\n", x, y);
         number_cells++;
         draw_cross(x, y, input_image);
       }
