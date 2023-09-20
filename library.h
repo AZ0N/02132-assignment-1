@@ -1,4 +1,4 @@
-#ifndef LIBRARY_H 
+#ifndef LIBRARY_H
 #define LIBRARY_H
 
 #include "cbmp.h"
@@ -16,5 +16,7 @@ int match_straight(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH
 int match_diagonal(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
 void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned short *number_of_cells);
 void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
+int in_bounds(int x, int y);
+int check_frame(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, int size);
 
 #endif // LIBRARY_H

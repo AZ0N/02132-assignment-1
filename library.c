@@ -81,82 +81,11 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
     {
         for (int y = 0; y < BMP_HEIGTH; y++)
         {
-            int white_in_exclusion = 0;
-            // First check inner exclusion frame
-            for (int d = -(DETECTION_HALF_RADIUS + 1); d <= (DETECTION_HALF_RADIUS + 1); d++)
-            {
-                // Inner vertical lines
-                if (0 <= x + d && x + d < BMP_WIDTH)
-                {
-                    // Top row
-                    if (0 <= y - (DETECTION_HALF_RADIUS + 1) && image[x + d][y - (DETECTION_HALF_RADIUS + 1)])
-                    {
-                        white_in_exclusion = 1;
-                        break;
-                    }
-                    // Bottom row
-                    if (y + (DETECTION_HALF_RADIUS + 1) < BMP_HEIGTH && image[x + d][y + (DETECTION_HALF_RADIUS + 1)])
-                    {
-                        white_in_exclusion = 1;
-                        break;
-                    }
-                }
-                // Inner horizontal lines
-                if (0 <= y + d && y + d < BMP_HEIGTH)
-                {
-                    // Left column
-                    if (0 <= x - (DETECTION_HALF_RADIUS + 1) && image[x - (DETECTION_HALF_RADIUS + 1)][y + d])
-                    {
-                        white_in_exclusion = 1;
-                        break;
-                    }
-                    // Right column
-                    if (x + (DETECTION_HALF_RADIUS + 1) < BMP_WIDTH && image[x + (DETECTION_HALF_RADIUS + 1)][y + d])
-                    {
-                        white_in_exclusion = 1;
-                        break;
-                    }
-                }
-            }
-            int white_in_exclusion_outer = 0;
-            // Checking the outer exlusion frame
-            for (int d = -(DETECTION_HALF_RADIUS + 2); d <= (DETECTION_HALF_RADIUS + 2); d++)
-            {
-                // Outer vertical lines 
-                if (0 <= x + d && x + d < BMP_WIDTH)
-                {
-                    // Top row
-                    if (0 <= y - (DETECTION_HALF_RADIUS + 2) && image[x + d][y - (DETECTION_HALF_RADIUS + 2)])
-                    {
-                        white_in_exclusion_outer++;
-                        break;
-                    }
-                    // Bottom row
-                    if (y + (DETECTION_HALF_RADIUS + 2) < BMP_HEIGTH && image[x + d][y + (DETECTION_HALF_RADIUS + 2)])
-                    {
-                        white_in_exclusion_outer++;
-                        break;
-                    }
-                }
-                // Outer horizontal lines
-                if (0 <= y + d && y + d < BMP_HEIGTH)
-                {
-                    // Left column
-                    if (0 <= x - (DETECTION_HALF_RADIUS + 2) && image[x - (DETECTION_HALF_RADIUS + 2)][y + d])
-                    {
-                        white_in_exclusion_outer++;
-                        break;
-                    }
-                    // Right column
-                    if (x + (DETECTION_HALF_RADIUS + 2) < BMP_WIDTH && image[x + (DETECTION_HALF_RADIUS + 2)][y + d])
-                    {
-                        white_in_exclusion_outer++;
-                        break;
-                    }
-                }
-            }
+            int white_in_exclusion_inner = check_frame(image, x, y, DETECTION_HALF_RADIUS + 1);
+            int white_in_exclusion_outer = check_frame(image, x, y, DETECTION_HALF_RADIUS + 2);
+
             // If we found a white pixel in the exclusion frame, move the detection windows 1 over
-            if (white_in_exclusion || white_in_exclusion_outer > 2)
+            if (white_in_exclusion_inner + white_in_exclusion_outer > 1)
             {
                 continue;
             }
@@ -212,4 +141,27 @@ void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHA
             }
         }
     }
+}
+
+// Returns 1 if a given (x, y) coordinate is inside the bounds, else 0
+int in_bounds(int x, int y)
+{
+    return 0 <= x && x < BMP_WIDTH && 0 <= y && y < BMP_HEIGTH;
+}
+
+int check_frame(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, int size)
+{
+    int white_in_frame = 0;
+    // First check exclusion frame
+    for (int offset = -size; offset <= size; offset++)
+    {
+        if (in_bounds(x + offset, y - size) && image[x + offset][y - size] || // Top row
+            in_bounds(x + offset, y + size) && image[x + offset][y + size] || // Bottom row
+            in_bounds(x - size, y + offset) && image[x - size][y + offset] || // Left column
+            in_bounds(x + size, y + offset) && image[x + size][y + offset])   // Right column
+        {
+            white_in_frame += 1;
+        }
+    }
+    return white_in_frame;
 }
