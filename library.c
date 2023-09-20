@@ -82,10 +82,10 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
         for (int y = 0; y < BMP_HEIGTH; y++)
         {
             int white_in_exclusion = 0;
-            // First check exclusion frame
+            // First check inner exclusion frame
             for (int d = -(DETECTION_HALF_RADIUS + 1); d <= (DETECTION_HALF_RADIUS + 1); d++)
             {
-                // Vertical lines
+                // Inner vertical lines
                 if (0 <= x + d && x + d < BMP_WIDTH)
                 {
                     // Top row
@@ -101,7 +101,7 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
                         break;
                     }
                 }
-                // Horizontal lines
+                // Inner horizontal lines
                 if (0 <= y + d && y + d < BMP_HEIGTH)
                 {
                     // Left column
@@ -118,8 +118,45 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
                     }
                 }
             }
+            int white_in_exclusion_outer = 0;
+            // Checking the outer exlusion frame
+            for (int d = -(DETECTION_HALF_RADIUS + 2); d <= (DETECTION_HALF_RADIUS + 2); d++)
+            {
+                // Outer vertical lines 
+                if (0 <= x + d && x + d < BMP_WIDTH)
+                {
+                    // Top row
+                    if (0 <= y - (DETECTION_HALF_RADIUS + 2) && image[x + d][y - (DETECTION_HALF_RADIUS + 2)])
+                    {
+                        white_in_exclusion_outer++;
+                        break;
+                    }
+                    // Bottom row
+                    if (y + (DETECTION_HALF_RADIUS + 2) < BMP_HEIGTH && image[x + d][y + (DETECTION_HALF_RADIUS + 2)])
+                    {
+                        white_in_exclusion_outer++;
+                        break;
+                    }
+                }
+                // Outer horizontal lines
+                if (0 <= y + d && y + d < BMP_HEIGTH)
+                {
+                    // Left column
+                    if (0 <= x - (DETECTION_HALF_RADIUS + 2) && image[x - (DETECTION_HALF_RADIUS + 2)][y + d])
+                    {
+                        white_in_exclusion_outer++;
+                        break;
+                    }
+                    // Right column
+                    if (x + (DETECTION_HALF_RADIUS + 2) < BMP_WIDTH && image[x + (DETECTION_HALF_RADIUS + 2)][y + d])
+                    {
+                        white_in_exclusion_outer++;
+                        break;
+                    }
+                }
+            }
             // If we found a white pixel in the exclusion frame, move the detection windows 1 over
-            if (white_in_exclusion)
+            if (white_in_exclusion || white_in_exclusion_outer > 2)
             {
                 continue;
             }
