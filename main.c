@@ -201,7 +201,7 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
         continue;
       }
       // Exclusion frame is all black (or empty), check if any white pixels inside
-      int found_cell = 0;
+      int white_pixels_found = 0;
 
       for (int dx = -DETECTION_HALF_RADIUS; dx <= DETECTION_HALF_RADIUS; dx++)
       {
@@ -209,13 +209,14 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
         {
           if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH && image[x + dx][y + dy])
           {
-            found_cell = 1;
+            white_pixels_found += 1;
             image[x + dx][y + dy] = 0;
           }
         }
       }
-      // If we found a cell
-      if (found_cell)
+      // If we found enough white pixels, we detected a cell
+      // TODO #define how many pixels we need to detect a cell 
+      if (white_pixels_found > 2)
       {
         // printf("Cell: (%d, %d)\n", x, y);
         number_cells++;
