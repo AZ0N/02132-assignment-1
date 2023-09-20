@@ -6,6 +6,7 @@
 #define THRESHOLD 90
 #define CROSS_RADIUS 8
 #define DETECTION_HALF_RADIUS 6
+#define MIN_WHITE_PIXELS 2
 
 // Prototypes
 void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH]);

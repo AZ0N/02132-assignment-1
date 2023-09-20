@@ -138,8 +138,7 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
                 }
             }
             // If we found enough white pixels, we detected a cell
-            // TODO #define how many pixels we need to detect a cell
-            if (white_pixels_found > 2)
+            if (white_pixels_found > MIN_WHITE_PIXELS)
             {
                 // printf("Cell: (%d, %d)\n", x, y);
                 *number_of_cells += 1;
