@@ -6,8 +6,9 @@ void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BM
     {
         for (int y = 0; y < BMP_HEIGTH; y++)
         {
-            unsigned char average = (input_image[x][y][0] + input_image[x][y][1] + input_image[x][y][2]) / 3;
-            output_image[x][y] = (average > THRESHOLD) ? 255 : 0;
+            // Calculate and check (r + g + b) / 4 > THRESHOLD * 3 / 4
+            unsigned char average_shifted = (input_image[x][y][0] + input_image[x][y][1] + input_image[x][y][2]) >> 2;
+            output_image[x][y] = (average_shifted > THRESHOLD_SHIFTED) ? 255 : 0;
         }
     }
 }
