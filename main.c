@@ -1,17 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "cbmp.h"
 #include "library.h"
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char working_image[2][BMP_WIDTH][BMP_HEIGTH];
-// TODO Remove. Used for saving erode steps
-unsigned char temp[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-
-// The total number of detected cells
-unsigned short number_of_cells = 0;
+unsigned char working_image[3][BMP_WIDTH][BMP_HEIGTH];
 
 // Main function
 int main(int argc, char **argv)
@@ -31,37 +27,37 @@ int main(int argc, char **argv)
   // Load image from file
   read_bitmap(argv[1], input_image);
 
-  // Convert to grayscale and apply threshold
-  grayscale_and_threshold(input_image, working_image[0]);
+  clock_t start, end;
+  double cpu_separate, cpu_division, cpu_final;
 
-  int erode_number = 0;
-  int from_index = 0;
-  int to_index = 1;
+  // Measure time usage of three methods
+  start = clock();
+  grayscale_and_threshold_separate(input_image, working_image[0]);
+  end = clock();
+  cpu_separate = end - start;
 
-  // Erode while something was eroded in the last iteration
-  while (erode(working_image[from_index], working_image[to_index], erode_number))
+  start = clock();
+  grayscale_and_threshold_division(input_image, working_image[1]);
+  end = clock();
+  cpu_division = end - start;
+
+  start = clock();
+  grayscale_and_threshold(input_image, working_image[2]);
+  end = clock();
+  cpu_final = end - start;
+
+  // Check wether the resulting images are the same.
+  int dif_sep_div = 0;
+  int dif_div_fin = 0;
+  for (int x = 0; x < BMP_WIDTH; x++)
   {
-    // Save erode image
-    // char filename[30];
-    // sprintf(filename, "./output/erode%d.bmp", erode_number);
-    // single_to_multi_channel(working_image[to_index], temp);
-    // write_bitmap(temp, filename);
-
-    // Detect cells in the eroded image
-    detect(working_image[to_index], input_image, &number_of_cells);
-
-    // Increment the erode_number
-    erode_number++;
-
-    // Increment and wrap from and to indexes (0 -> 1, 1 -> 0)
-    from_index = (from_index + 1) % 2;
-    to_index = (to_index + 1) % 2;
-
-    // Save detect image
-    // sprintf(filename, "./output/detect_%d.bmp", erode_number);
-    // write_bitmap(input_image, filename);
+      for (int y = 0; y < BMP_HEIGTH; y++)
+      {
+        dif_sep_div += (working_image[0][x][y] != working_image[1][x][y]) ? 1 : 0;
+        dif_div_fin += (working_image[1][x][y] != working_image[2][x][y]) ? 1 : 0;
+      }
   }
-  write_bitmap(input_image, argv[2]);
-  printf("%d cells found.\n", number_of_cells);
+  printf("%s; %f; %f; %f; %d; %d\n", argv[1], cpu_separate * 1000.0 / CLOCKS_PER_SEC, cpu_division * 1000.0 / CLOCKS_PER_SEC, cpu_final * 1000.0 / CLOCKS_PER_SEC, dif_sep_div, dif_div_fin);
+
   return 0;
 }

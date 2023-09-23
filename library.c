@@ -13,6 +13,37 @@ void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BM
     }
 }
 
+void grayscale_and_threshold_division(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
+{
+    for (int x = 0; x < BMP_WIDTH; x++)
+    {
+        for (int y = 0; y < BMP_HEIGTH; y++)
+        {
+            unsigned char average = (input_image[x][y][0] + input_image[x][y][1] + input_image[x][y][2]) / 3;
+            output_image[x][y] = (average > THRESHOLD) ? 255 : 0;
+        }
+    }
+}
+
+void grayscale_and_threshold_separate(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
+{
+    for (int x = 0; x < BMP_WIDTH; x++)
+    {
+        for (int y = 0; y < BMP_HEIGTH; y++)
+        {
+            output_image[x][y] = (input_image[x][y][0] + input_image[x][y][1] + input_image[x][y][2]) / 3;
+        }
+    }
+
+    for (int x = 0; x < BMP_WIDTH; x++)
+    {
+        for (int y = 0; y < BMP_HEIGTH; y++)
+        {
+            output_image[x][y] = (output_image[x][y] > THRESHOLD) ? 255 : 0;
+        }
+    }
+}
+
 void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
     for (int x = 0; x < BMP_WIDTH; x++)
