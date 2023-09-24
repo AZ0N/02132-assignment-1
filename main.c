@@ -34,12 +34,12 @@ int main(int argc, char **argv)
   // Convert to grayscale and apply threshold
   grayscale_and_threshold(input_image, working_image[0]);
 
-  int erode_number = 0;
+  int iteration = 0;
   int from_index = 0;
   int to_index = 1;
 
   // Erode while something was eroded in the last iteration
-  while (erode(working_image[from_index], working_image[to_index], erode_number))
+  while (erode(working_image[from_index], working_image[to_index], iteration))
   {
     // Save erode image
     // char filename[30];
@@ -47,11 +47,14 @@ int main(int argc, char **argv)
     // single_to_multi_channel(working_image[to_index], temp);
     // write_bitmap(temp, filename);
 
-    // Detect cells in the eroded image
-    detect(working_image[to_index], input_image, &number_of_cells);
+    if (iteration > 2)
+    {
+      // Detect cells in the eroded image
+      detect(working_image[to_index], input_image, &number_of_cells);
+    }
 
     // Increment the erode_number
-    erode_number++;
+    iteration++;
 
     // Increment and wrap from and to indexes (0 -> 1, 1 -> 0)
     from_index = (from_index + 1) % 2;
