@@ -86,7 +86,7 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
             int white_in_exclusion_outer = check_frame(image, x, y, DETECTION_HALF_RADIUS + 2);
 
             // If we found a white pixel in the exclusion frame, move the detection windows 1 over
-            if (white_in_exclusion_inner + white_in_exclusion_outer > 1)
+            if (white_in_exclusion_inner + white_in_exclusion_outer > MAX_WHITE_IN_EXCLUSION)
             {
                 continue;
             }
