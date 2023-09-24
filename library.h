@@ -6,7 +6,7 @@
 #define THRESHOLD 90
 #define CROSS_RADIUS 8
 #define DETECTION_HALF_RADIUS 6
-#define MIN_WHITE_PIXELS 2
+#define MIN_WHITE_PIXELS 3
 
 // Computing THRESHOLD * 3/4 so the average in grayscale_and_threshold can be computed division by 4 (using bitshift, << 2).
 static const unsigned char THRESHOLD_SHIFTED = THRESHOLD * 3 / 4;

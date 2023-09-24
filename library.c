@@ -100,13 +100,23 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
                     if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH && image[x + dx][y + dy])
                     {
                         white_pixels_found += 1;
-                        image[x + dx][y + dy] = 0;
                     }
                 }
             }
             // If we found enough white pixels, we detected a cell
             if (white_pixels_found > MIN_WHITE_PIXELS)
             {
+                // Clear frame
+                for (int dx = -DETECTION_HALF_RADIUS; dx <= DETECTION_HALF_RADIUS; dx++)
+                {
+                    for (int dy = -DETECTION_HALF_RADIUS; dy <= DETECTION_HALF_RADIUS; dy++)
+                    {
+                        if (in_bounds(x + dx, y + dy) && image[x + dx][y + dy])
+                        {
+                            image[x + dx][y + dy] = 0;
+                        }
+                    }
+                }
                 // printf("Cell: (%d, %d)\n", x, y);
                 *number_of_cells += 1;
                 draw_cross(x, y, draw_image);
