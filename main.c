@@ -65,6 +65,6 @@ int main(int argc, char **argv)
     // write_bitmap(input_image, filename);
   }
   write_bitmap(input_image, argv[2]);
-  printf("%d cells found.\n", number_of_cells);
+  printf("%s; %d\n", argv[1], number_of_cells);
   return 0;
 }
