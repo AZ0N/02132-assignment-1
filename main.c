@@ -4,11 +4,23 @@
 #include "cbmp.h"
 #include "library.h"
 
+// Use to control whether erode and detects images are saved to ./output/
+// #define SAVE_ERODE
+// #define SAVE_DETECT
+
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char working_image[2][BMP_WIDTH][BMP_HEIGTH];
-// TODO Remove. Used for saving erode steps
+
+#ifdef SAVE_ERODE
+// Declare temp buffer to save erode image in, if it should be outputted
 unsigned char temp[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+#endif
+
+#if defined(SAVE_ERODE) || defined(SAVE_DETECT)
+// Declare buffer to save file path, if erode and/or detect steps should be saved
+char filename[30];
+#endif
 
 // The total number of detected cells
 unsigned short number_of_cells = 0;
@@ -41,11 +53,12 @@ int main(int argc, char **argv)
   // Erode while something was eroded in the last iteration
   while (erode(working_image[from_index], working_image[to_index], iteration))
   {
+#ifdef SAVE_ERODE
     // Save erode image
-    // char filename[30];
-    // sprintf(filename, "./output/erode%d.bmp", erode_number);
-    // single_to_multi_channel(working_image[to_index], temp);
-    // write_bitmap(temp, filename);
+    sprintf(filename, "./output/erode%d.bmp", iteration);
+    single_to_multi_channel(working_image[to_index], temp);
+    write_bitmap(temp, filename);
+#endif
 
     if (iteration > 2)
     {
@@ -60,9 +73,11 @@ int main(int argc, char **argv)
     from_index = (from_index + 1) % 2;
     to_index = (to_index + 1) % 2;
 
+#ifdef SAVE_DETECT
     // Save detect image
-    // sprintf(filename, "./output/detect_%d.bmp", erode_number);
-    // write_bitmap(input_image, filename);
+    sprintf(filename, "./output/detect_%d.bmp", iteration);
+    write_bitmap(input_image, filename);
+#endif
   }
   write_bitmap(input_image, argv[2]);
   printf("%d cells found.\n", number_of_cells);
