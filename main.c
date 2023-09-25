@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "cbmp.h"
 #include "library.h"
@@ -49,8 +50,15 @@ int main(int argc, char **argv)
 
     if (iteration > 2)
     {
+      clock_t start, end;
+      double cpu_time_used;
+
+      start = clock();
       // Detect cells in the eroded image
       detect(working_image[to_index], input_image, &number_of_cells);
+      end = clock();
+      cpu_time_used = end - start;
+      printf("%s; %d; %f\n", argv[1], iteration, cpu_time_used * 1000 / CLOCKS_PER_SEC);
     }
 
     // Increment the erode_number
@@ -65,6 +73,5 @@ int main(int argc, char **argv)
     // write_bitmap(input_image, filename);
   }
   write_bitmap(input_image, argv[2]);
-  printf("%s; %d\n", argv[1], number_of_cells);
   return 0;
 }
