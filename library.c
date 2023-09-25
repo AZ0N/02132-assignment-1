@@ -137,6 +137,11 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
                 *number_of_cells += 1;
                 draw_cross(x, y, draw_image);
             }
+            // If the entire capture area was empty (all black pixels), move the capture array half the width further
+            else if (white_pixels_found == 0)
+            {
+                y += DETECTION_HALF_RADIUS + 1;
+            }
         }
     }
 }
