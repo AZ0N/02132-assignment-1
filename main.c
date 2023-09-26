@@ -64,20 +64,19 @@ int main(int argc, char **argv)
     {
       // Detect cells in the eroded image
       detect(working_image[to_index], input_image, &number_of_cells);
+#ifdef SAVE_DETECT
+      // Save detect image
+      sprintf(filename, "./output/detect_%d.bmp", iteration);
+      write_bitmap(input_image, filename);
+#endif
     }
 
-    // Increment the erode_number
+    // Increment the iteration number
     iteration++;
 
     // Increment and wrap from and to indexes (0 -> 1, 1 -> 0)
     from_index = (from_index + 1) % 2;
     to_index = (to_index + 1) % 2;
-
-#ifdef SAVE_DETECT
-    // Save detect image
-    sprintf(filename, "./output/detect_%d.bmp", iteration);
-    write_bitmap(input_image, filename);
-#endif
   }
   write_bitmap(input_image, argv[2]);
   printf("%d cells found.\n", number_of_cells);
