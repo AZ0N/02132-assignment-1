@@ -80,6 +80,6 @@ int main(int argc, char **argv)
     to_index = (to_index + 1) % 2;
   }
   write_bitmap(input_image, argv[2]);
-  printf("%d cells found.\n", number_of_cells);
+  printf("Cell count: %d\n", number_of_cells);
   return 0;
 }
