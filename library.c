@@ -211,7 +211,7 @@ void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHA
     // Horizontal line
     for (int dx = -CROSS_RADIUS; dx <= CROSS_RADIUS; dx++)
     {
-        for (int dy = -2; dy <= 2; dy++)
+        for (int dy = -1; dy <= 2; dy++)
         {
             if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH)
             {
@@ -223,7 +223,7 @@ void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHA
     // Vertical line
     for (int dy = -CROSS_RADIUS; dy <= CROSS_RADIUS; dy++)
     {
-        for (int dx = -2; dx <= 2; dx++)
+        for (int dx = -1; dx <= 2; dx++)
         {
             if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH)
             {
