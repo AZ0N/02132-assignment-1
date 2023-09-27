@@ -28,49 +28,7 @@ void set_pixel(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
     image[x >> 3][y] |= 1 << (7 - (x & 0b111));
 }
 
-unsigned char byte_above(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
-{
-    return (0 < y) ? image[x][y - 1] : 0xFF;
-}
-
-unsigned char byte_below(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
-{
-    return (y < BMP_HEIGTH - 1) ? image[x][y + 1] : 0xFF;
-}
-
-unsigned char byte_left(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
-{
-    return (image[x][y] >> 1) | ((x == 0) ? 0x80 : (image[x - 1][y] << 7));
-}
-
-unsigned char byte_right(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
-{
-    return (image[x][y] << 1) | ((x == PACKED_WIDTH - 1) ? 0x01 : (image[x + 1][y] >> 7));
-}
-
-unsigned char byte_above_left(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
-{
-    return (0 < y) ? byte_left(image, x, y - 1) : 0xFF;
-}
-
-unsigned char byte_above_right(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
-{
-    return (0 < y) ? byte_right(image, x, y - 1) : 0xFF;
-}
-
-unsigned char byte_below_left(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
-{
-    return (y < BMP_HEIGTH - 1) ? byte_left(image, x, y + 1) : 0xFF;
-}
-
-unsigned char byte_below_right(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
-{
-    return (y < BMP_HEIGTH - 1) ? byte_right(image, x, y + 1) : 0xFF;
-}
-
 // Prototypes
-int match_straight(int x, int y, unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH]);
-int match_diagonal(int x, int y, unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH]);
 void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
 int in_bounds(int x, int y);
 int check_frame(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y, int size);
@@ -107,41 +65,6 @@ void single_to_multi_channel(unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH]
             }
         }
     }
-}
-
-int erode(unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH], unsigned char output_image[PACKED_WIDTH][BMP_HEIGTH], int iteration)
-{
-    int did_erode = 0;
-    for (int x = 0; x < PACKED_WIDTH; x++)
-    {
-        for (int y = 0; y < BMP_HEIGTH; y++)
-        {
-            unsigned char initial = input_image[x][y];
-
-            if (iteration % 2 == 0)
-            {
-                output_image[x][y] = input_image[x][y] &
-                                     byte_above(input_image, x, y) &
-                                     byte_below(input_image, x, y) &
-                                     byte_left(input_image, x, y) &
-                                     byte_right(input_image, x, y);
-            }
-            else
-            {
-                output_image[x][y] = input_image[x][y] &
-                                     byte_above_left(input_image, x, y) &
-                                     byte_above_right(input_image, x, y) &
-                                     byte_below_left(input_image, x, y) &
-                                     byte_below_right(input_image, x, y);
-            }
-
-            if (output_image[x][y] != initial)
-            {
-                did_erode = 1;
-            }
-        }
-    }
-    return did_erode;
 }
 
 void detect(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], unsigned char draw_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned short *number_of_cells)

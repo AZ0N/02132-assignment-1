@@ -3,6 +3,7 @@
 
 #include "cbmp.h"
 #include "library.h"
+#include "erode.h"
 
 // Use to control whether erode and detects images are saved to ./output/
 // #define SAVE_ERODE
