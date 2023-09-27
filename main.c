@@ -10,7 +10,7 @@
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char working_image[2][BMP_WIDTH][BMP_HEIGTH];
+unsigned char working_image[2][PACKED_WIDTH][BMP_HEIGTH];
 
 #ifdef SAVE_ERODE
 // Declare temp buffer to save erode image in, if it should be outputted
@@ -19,7 +19,7 @@ unsigned char temp[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 
 #if defined(SAVE_ERODE) || defined(SAVE_DETECT)
 // Declare buffer to save file path, if erode and/or detect steps should be saved
-char filename[30];
+char filename[50];
 #endif
 
 // The total number of detected cells

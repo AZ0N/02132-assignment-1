@@ -9,14 +9,29 @@
 // Computing THRESHOLD * 3/4 so the average in grayscale_and_threshold can be computed division by 4 (using bitshift, << 2).
 static const unsigned char THRESHOLD_SHIFTED = THRESHOLD * 3 / 4;
 
+unsigned char get_pixel(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    return (image[x >> 3][y] >> (x & 0b111)) & 1;
+}
+
+void clear_pixel(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    image[x >> 3][y] &= ~(1 << (x & 0b111));
+}
+
+void set_pixel(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    image[x >> 3][y] |= 1 << (x & 0b111);
+}
+
 // Prototypes
-int match_straight(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
-int match_diagonal(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH]);
+int match_straight(int x, int y, unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH]);
+int match_diagonal(int x, int y, unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH]);
 void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
 int in_bounds(int x, int y);
-int check_frame(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, int size);
+int check_frame(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y, int size);
 
-void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH])
+void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[PACKED_WIDTH][BMP_HEIGTH])
 {
     for (int x = 0; x < BMP_WIDTH; x++)
     {
@@ -24,12 +39,19 @@ void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BM
         {
             // Calculate and check (r + g + b) / 4 > THRESHOLD * 3 / 4
             unsigned char average_shifted = (input_image[x][y][0] + input_image[x][y][1] + input_image[x][y][2]) >> 2;
-            output_image[x][y] = (average_shifted > THRESHOLD_SHIFTED) ? 255 : 0;
+            if (average_shifted > THRESHOLD_SHIFTED)
+            {
+                set_pixel(output_image, x, y);
+            }
+            else
+            {
+                clear_pixel(output_image, x, y);
+            }
         }
     }
 }
 
-void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
+void single_to_multi_channel(unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
     for (int x = 0; x < BMP_WIDTH; x++)
     {
@@ -37,62 +59,62 @@ void single_to_multi_channel(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], u
         {
             for (int c = 0; c < BMP_CHANNELS; c++)
             {
-                output_image[x][y][c] = input_image[x][y];
+                output_image[x][y][c] = get_pixel(input_image, x, y) ? 255 : 0;
             }
         }
     }
 }
 
-int erode(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH], int iteration)
+int erode(unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH], unsigned char output_image[PACKED_WIDTH][BMP_HEIGTH], int iteration)
 {
     int did_erode = 0;
     for (int x = 0; x < BMP_WIDTH; x++)
     {
         for (int y = 0; y < BMP_HEIGTH; y++)
         {
-            if (input_image[x][y])
+            if (get_pixel(input_image, x, y))
             {
                 // If any of the directly surrounding pixels are black (edges are considered white) erode the pixel
                 if ((iteration % 2 == 0 && match_straight(x, y, input_image)) || (iteration % 2 != 0 && match_diagonal(x, y, input_image)))
                 {
-                    output_image[x][y] = 0;
+                    clear_pixel(output_image, x, y);
                     did_erode = 1;
                 }
                 else
                 {
-                    output_image[x][y] = 255;
+                    set_pixel(output_image, x, y);
                 }
             }
             else
             {
-                output_image[x][y] = 0;
+                clear_pixel(output_image, x, y);
             }
         }
     }
     return did_erode;
 }
 
-int match_straight(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH])
+int match_straight(int x, int y, unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH])
 {
-    return ((y > 0 && !input_image[x][y - 1]) ||
-            (x > 0 && !input_image[x - 1][y]) ||
-            (y < BMP_HEIGTH - 1 && !input_image[x][y + 1]) ||
-            (x < BMP_WIDTH - 1 && !input_image[x + 1][y]))
+    return ((y > 0 && !get_pixel(input_image, x, y - 1)) ||
+            (x > 0 && !get_pixel(input_image, x - 1, y)) ||
+            (y < BMP_HEIGTH - 1 && !get_pixel(input_image, x, y + 1)) ||
+            (x < BMP_WIDTH - 1 && !get_pixel(input_image, x + 1, y)))
                ? 1
                : 0;
 }
 
-int match_diagonal(int x, int y, unsigned char input_image[BMP_WIDTH][BMP_HEIGTH])
+int match_diagonal(int x, int y, unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH])
 {
-    return ((0 < x && 0 < y && !input_image[x - 1][y - 1]) ||
-            (0 < x && y < BMP_HEIGTH - 1 && !input_image[x - 1][y + 1]) ||
-            (x < BMP_WIDTH - 1 && 0 < y && !input_image[x + 1][y - 1]) ||
-            (x < BMP_WIDTH - 1 && y < BMP_HEIGTH - 1 && !input_image[x + 1][y + 1]))
+    return ((0 < x && 0 < y && !get_pixel(input_image, x - 1, y - 1)) ||
+            (0 < x && y < BMP_HEIGTH - 1 && !get_pixel(input_image, x - 1, y + 1)) ||
+            (x < BMP_WIDTH - 1 && 0 < y && !get_pixel(input_image, x + 1, y - 1)) ||
+            (x < BMP_WIDTH - 1 && y < BMP_HEIGTH - 1 && !get_pixel(input_image, x + 1, y + 1)))
                ? 1
                : 0;
 }
 
-void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned short *number_of_cells)
+void detect(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], unsigned char draw_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned short *number_of_cells)
 {
     for (int x = 0; x < BMP_WIDTH; x++)
     {
@@ -113,7 +135,7 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
             {
                 for (int dy = -DETECTION_HALF_RADIUS; dy <= DETECTION_HALF_RADIUS; dy++)
                 {
-                    if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH && image[x + dx][y + dy])
+                    if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH && get_pixel(image, x + dx, y + dy))
                     {
                         white_pixels_found += 1;
                     }
@@ -127,9 +149,9 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
                 {
                     for (int dy = -DETECTION_HALF_RADIUS; dy <= DETECTION_HALF_RADIUS; dy++)
                     {
-                        if (in_bounds(x + dx, y + dy) && image[x + dx][y + dy])
+                        if (in_bounds(x + dx, y + dy) && get_pixel(image, x + dx, y + dy))
                         {
-                            image[x + dx][y + dy] = 0;
+                            clear_pixel(image, x + dx, y + dy);
                         }
                     }
                 }
@@ -181,16 +203,16 @@ int in_bounds(int x, int y)
     return 0 <= x && x < BMP_WIDTH && 0 <= y && y < BMP_HEIGTH;
 }
 
-int check_frame(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, int size)
+int check_frame(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y, int size)
 {
     int white_in_frame = 0;
     // First check exclusion frame
     for (int offset = -size; offset <= size; offset++)
     {
-        if (in_bounds(x + offset, y - size) && image[x + offset][y - size] || // Top row
-            in_bounds(x + offset, y + size) && image[x + offset][y + size] || // Bottom row
-            in_bounds(x - size, y + offset) && image[x - size][y + offset] || // Left column
-            in_bounds(x + size, y + offset) && image[x + size][y + offset])   // Right column
+        if (in_bounds(x + offset, y - size) && get_pixel(image, x + offset, y - size) || // Top row
+            in_bounds(x + offset, y + size) && get_pixel(image, x + offset, y + size) || // Bottom row
+            in_bounds(x - size, y + offset) && get_pixel(image, x - size, y + offset) || // Left column
+            in_bounds(x + size, y + offset) && get_pixel(image, x + size, y + offset))   // Right column
         {
             white_in_frame += 1;
         }
