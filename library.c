@@ -33,26 +33,22 @@ void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHA
 int in_bounds(int x, int y);
 int check_frame(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y, int size);
 
-void grayscale_and_threshold(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[PACKED_WIDTH][BMP_HEIGTH])
+// Convert input[][] to grayscale and apply binary threshold and save in output[][]
+void grayscale_and_threshold(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output[PACKED_WIDTH][BMP_HEIGTH])
 {
     for (int x = 0; x < BMP_WIDTH; x++)
     {
         for (int y = 0; y < BMP_HEIGTH; y++)
         {
-            // Calculate and check (r + g + b) / 4 > THRESHOLD * 3 / 4
-            unsigned char average_shifted = (input_image[x][y][0] + input_image[x][y][1] + input_image[x][y][2]) >> 2;
-            if (average_shifted > THRESHOLD_SHIFTED)
-            {
-                set_pixel(output_image, x, y);
-            }
-            else
-            {
-                clear_pixel(output_image, x, y);
-            }
+            // Calculate and check shifted average
+            unsigned char average_shifted = (input[x][y][0] + input[x][y][1] + input[x][y][2]) >> 2;
+            // If shifted average is over shifted threshold, set the corresponding bit to 1, else 0
+            (average_shifted > THRESHOLD_SHIFTED) ? set_pixel(output, x, y) : clear_pixel(output, x, y);
         }
     }
 }
 
+// Convert bit-packed image to BMP image format
 void single_to_multi_channel(unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
     for (int x = 0; x < BMP_WIDTH; x++)
@@ -67,6 +63,7 @@ void single_to_multi_channel(unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH]
     }
 }
 
+// Detect cells in image[][]. Writes crosses of found cells to draw_image. Increments *number_of_cells
 void detect(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], unsigned char draw_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned short *number_of_cells)
 {
     for (int x = 0; x < BMP_WIDTH; x++)
@@ -131,7 +128,7 @@ void detect(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], unsigned char draw_im
 // Draw a red cross on image with center at (x,y)
 void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
-    // Horizontal line
+    // Draw horizontal line
     for (int dx = -CROSS_RADIUS; dx <= CROSS_RADIUS; dx++)
     {
         for (int dy = -1; dy <= 2; dy++)
@@ -143,7 +140,7 @@ void draw_cross(int x, int y, unsigned char image[BMP_WIDTH][BMP_HEIGTH][BMP_CHA
             }
         }
     }
-    // Vertical line
+    // Draw vertical line
     for (int dy = -CROSS_RADIUS; dy <= CROSS_RADIUS; dy++)
     {
         for (int dx = -1; dx <= 2; dx++)
@@ -163,6 +160,7 @@ int in_bounds(int x, int y)
     return 0 <= x && x < BMP_WIDTH && 0 <= y && y < BMP_HEIGTH;
 }
 
+// Returns the number of white pixels found in a frame around (x,y) in image[][], going size out to each side (2*side + 1 width)
 int check_frame(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y, int size)
 {
     int white_in_frame = 0;
