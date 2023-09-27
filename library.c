@@ -5,9 +5,9 @@
 #define PRINT_CENTERS
 
 #define THRESHOLD 90
-#define CROSS_RADIUS 8
-#define DETECTION_HALF_RADIUS 5
-#define MIN_WHITE_PIXELS 3
+#define CROSS_RADIUS 7
+#define DETECTION_HALF_RADIUS 7
+#define MIN_WHITE_PIXELS 2
 #define MAX_WHITE_IN_EXCLUSION 1
 
 // Computing THRESHOLD * 3/4 so the average in grayscale_and_threshold can be computed division by 4 (using bitshift, << 2).
