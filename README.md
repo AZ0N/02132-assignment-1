@@ -3,7 +3,7 @@
 ## Instructions 
 ### Linux/Mac
 ```bash
-gcc library.y cbmp.c main.c -o main.out -std=c99
+gcc library.h cbmp.c main.c -o main.out -std=c99
 ./main.out input.bmp output.bmp
 ```
 ### Windows
