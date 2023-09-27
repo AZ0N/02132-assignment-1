@@ -1,4 +1,8 @@
+#include <stdio.h>
 #include "library.h"
+
+// Controls whether the centers of cells are printed to standard out
+#define PRINT_CENTERS
 
 #define THRESHOLD 90
 #define CROSS_RADIUS 8
@@ -164,6 +168,11 @@ void detect(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], unsigned char draw_im
                     if (0 <= x + dx && x + dx < BMP_WIDTH && 0 <= y + dy && y + dy < BMP_HEIGTH && get_pixel(image, x + dx, y + dy))
                     {
                         white_pixels_found += 1;
+                        // If we found enough white pixels break, and go to clearing the frame
+                        if (white_pixels_found > MIN_WHITE_PIXELS)
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -181,7 +190,9 @@ void detect(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], unsigned char draw_im
                         }
                     }
                 }
-                // printf("Cell: (%d, %d)\n", x, y);
+#ifdef PRINT_CENTERS
+                printf("(%d, %d)\n", x, y);
+#endif
                 *number_of_cells += 1;
                 draw_cross(x, y, draw_image);
             }
