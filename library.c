@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "library.h"
 #include <stdbool.h>
 
@@ -167,7 +168,9 @@ void detect(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char draw_image
                         }
                     }
                 }
-                // printf("Cell: (%d, %d)\n", x, y);
+#ifdef PRINT_CELLS
+                printf("(%d, %d)\n", x, y);
+#endif
                 *number_of_cells += 1;
                 draw_cross(x, y, draw_image);
             }
