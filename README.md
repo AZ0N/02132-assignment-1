@@ -3,7 +3,7 @@
 ## Instructions 
 ### Linux/Mac
 ```bash
-gcc library.y erode.c cbmp.c main.c -o main.out -std=c99
+gcc library.c erode.c cbmp.c main.c -o main.out -std=c99
 ./main.out input.bmp output.bmp
 ```
 ### Windows
