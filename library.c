@@ -11,17 +11,57 @@ static const unsigned char THRESHOLD_SHIFTED = THRESHOLD * 3 / 4;
 
 unsigned char get_pixel(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
 {
-    return (image[x >> 3][y] >> (x & 0b111)) & 1;
+    return (image[x >> 3][y] >> (7 - (x & 0b111))) & 1;
 }
 
 void clear_pixel(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
 {
-    image[x >> 3][y] &= ~(1 << (x & 0b111));
+    image[x >> 3][y] &= ~(1 << (7 - (x & 0b111)));
 }
 
 void set_pixel(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
 {
-    image[x >> 3][y] |= 1 << (x & 0b111);
+    image[x >> 3][y] |= 1 << (7 - (x & 0b111));
+}
+
+unsigned char byte_above(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    return (0 < y) ? image[x][y - 1] : 0xFF;
+}
+
+unsigned char byte_below(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    return (y < BMP_HEIGTH - 1) ? image[x][y + 1] : 0xFF;
+}
+
+unsigned char byte_left(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    return (image[x][y] >> 1) | ((x == 0) ? 0x80 : (image[x - 1][y] << 7));
+}
+
+unsigned char byte_right(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    return (image[x][y] << 1) | ((x == PACKED_WIDTH - 1) ? 0x01 : (image[x + 1][y] >> 7));
+}
+
+unsigned char byte_above_left(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    return (0 < y) ? byte_left(image, x, y - 1) : 0xFF;
+}
+
+unsigned char byte_above_right(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    return (0 < y) ? byte_right(image, x, y - 1) : 0xFF;
+}
+
+unsigned char byte_below_left(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    return (y < BMP_HEIGTH - 1) ? byte_left(image, x, y + 1) : 0xFF;
+}
+
+unsigned char byte_below_right(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    return (y < BMP_HEIGTH - 1) ? byte_right(image, x, y + 1) : 0xFF;
 }
 
 // Prototypes
@@ -68,50 +108,36 @@ void single_to_multi_channel(unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH]
 int erode(unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH], unsigned char output_image[PACKED_WIDTH][BMP_HEIGTH], int iteration)
 {
     int did_erode = 0;
-    for (int x = 0; x < BMP_WIDTH; x++)
+    for (int x = 0; x < PACKED_WIDTH; x++)
     {
         for (int y = 0; y < BMP_HEIGTH; y++)
         {
-            if (get_pixel(input_image, x, y))
+            unsigned char initial = input_image[x][y];
+
+            if (iteration % 2 == 0)
             {
-                // If any of the directly surrounding pixels are black (edges are considered white) erode the pixel
-                if ((iteration % 2 == 0 && match_straight(x, y, input_image)) || (iteration % 2 != 0 && match_diagonal(x, y, input_image)))
-                {
-                    clear_pixel(output_image, x, y);
-                    did_erode = 1;
-                }
-                else
-                {
-                    set_pixel(output_image, x, y);
-                }
+                output_image[x][y] = input_image[x][y] &
+                                     byte_above(input_image, x, y) &
+                                     byte_below(input_image, x, y) &
+                                     byte_left(input_image, x, y) &
+                                     byte_right(input_image, x, y);
             }
             else
             {
-                clear_pixel(output_image, x, y);
+                output_image[x][y] = input_image[x][y] &
+                                     byte_above_left(input_image, x, y) &
+                                     byte_above_right(input_image, x, y) &
+                                     byte_below_left(input_image, x, y) &
+                                     byte_below_right(input_image, x, y);
+            }
+
+            if (output_image[x][y] != initial)
+            {
+                did_erode = 1;
             }
         }
     }
     return did_erode;
-}
-
-int match_straight(int x, int y, unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH])
-{
-    return ((y > 0 && !get_pixel(input_image, x, y - 1)) ||
-            (x > 0 && !get_pixel(input_image, x - 1, y)) ||
-            (y < BMP_HEIGTH - 1 && !get_pixel(input_image, x, y + 1)) ||
-            (x < BMP_WIDTH - 1 && !get_pixel(input_image, x + 1, y)))
-               ? 1
-               : 0;
-}
-
-int match_diagonal(int x, int y, unsigned char input_image[PACKED_WIDTH][BMP_HEIGTH])
-{
-    return ((0 < x && 0 < y && !get_pixel(input_image, x - 1, y - 1)) ||
-            (0 < x && y < BMP_HEIGTH - 1 && !get_pixel(input_image, x - 1, y + 1)) ||
-            (x < BMP_WIDTH - 1 && 0 < y && !get_pixel(input_image, x + 1, y - 1)) ||
-            (x < BMP_WIDTH - 1 && y < BMP_HEIGTH - 1 && !get_pixel(input_image, x + 1, y + 1)))
-               ? 1
-               : 0;
 }
 
 void detect(unsigned char image[PACKED_WIDTH][BMP_HEIGTH], unsigned char draw_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned short *number_of_cells)
