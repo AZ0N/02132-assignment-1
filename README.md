@@ -15,10 +15,11 @@ gcc library.c erode.c cbmp.c main.c -o main.exe -std=c99
 ## Configuration
 ### `main.c`
 ```c
-// Controls whether erode and detects images are saved to ./output/
+// Controls whether erode and detect images are saved to ./output/
 // #define SAVE_ERODE
 // #define SAVE_DETECT
 ```
+If `SAVE_ERODE` or `SAVE_DETECT` is defined, erode and detect images will be saved at `./output/`. Therefore the folder need to exist.
 
 ### `library.c`
 ```c
